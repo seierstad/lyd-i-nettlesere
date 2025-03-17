@@ -1,0 +1,26 @@
+{
+  "name": "lyd-i-nettlesere",
+  "version": "0.0.1",
+  "description": "Filer til miniseminaret \"Lyd i nettlesere\"",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seierstad/lyd-i-nettlesere.git"
+  },
+  "keywords": [
+    "WebAudioAPI"
+  ],
+  "author": "Erik E. Seierstad",
+  "license": "CC-BY-NC-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/seierstad/lyd-i-nettlesere/issues"
+  },
+  "homepage": "https://github.com/seierstad/lyd-i-nettlesere#readme",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

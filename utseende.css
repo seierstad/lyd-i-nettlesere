@@ -1,0 +1,42 @@
+main {
+    margin: 0 2rem 12rem;
+}
+
+footer {
+    background: white;
+    bottom: 0;
+    max-height: 4rem;
+    position: fixed;
+    width: 100vw;
+}
+
+#bli-lyd {
+    width: 60vw;
+    height: 60vh;
+    position: absolute;
+    top: 20vh;
+    left: 20vw;
+}
+
+label {
+    display: block;
+}
+
+canvas {
+    background: #ddd;
+}
+
+[rel~="license"].creative-commons {
+    --cc-logo-width: 1.375em;
+    --cc-logo-margin: .1875em;
+    --cc-logo-unit: calc(var(--cc-logo-width) + var(--cc-logo-margin));
+    --cc-logo-radius: calc(var(--cc-logo-width) / 2);
+    --cc-logo-background: transparent;
+
+    svg.cc {
+        color: var(--text-color);
+        margin-left: var(--cc-logo-margin);
+        vertical-align: text-bottom;
+        width: var(--cc-logo-width);
+    }
+}

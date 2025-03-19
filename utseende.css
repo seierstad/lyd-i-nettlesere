@@ -16,6 +16,10 @@ footer {
     position: absolute;
     top: 20vh;
     left: 20vw;
+
+    &::backdrop {
+        background: orange;
+    }
 }
 
 label {
@@ -26,12 +30,21 @@ canvas {
     background: #ddd;
 }
 
+code {
+    background: #ddfa;
+    padding-left: 1ex;
+    padding-right: 1ex;
+}
+
 [rel~="license"].creative-commons {
     --cc-logo-width: 1.375em;
     --cc-logo-margin: .1875em;
     --cc-logo-unit: calc(var(--cc-logo-width) + var(--cc-logo-margin));
     --cc-logo-radius: calc(var(--cc-logo-width) / 2);
     --cc-logo-background: transparent;
+
+    display: inline-block;
+    white-space: collapse;
 
     svg.cc {
         color: var(--text-color);

@@ -3,34 +3,51 @@
 let context;
 
 const bliLyd = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
     context = new AudioContext();
-    const knapp = event.target;
-    knapp.parentElement.removeChild(knapp);
 };
 
-const aktivKnapp = document.getElementById("bli-lyd");
-aktivKnapp.addEventListener("click", bliLyd, {once: true});
+const aktiveringsDialog = document.getElementById("bli-lyd");
+aktiveringsDialog.addEventListener("close", bliLyd, {once: true});
 
 
 
 
 /* funksjoner for å lage en oscillator-node, koble den til lydutgangen, starte og stoppe */
 
+/* envelope = omhylningskurve */
+
 let oscillator;
+let omhyler;
 
 function nyOscillator () {
     oscillator = context.createOscillator();
-    oscillator.connect(context.destination);
+    omhyler = context.createGain();
+
+    oscillator.connect(omhyler);
+    omhyler.connect(context.destination);
 }
+
+const ATTACK_TIME_S = 0.2;
+const DECAY_TIME_S = 0.1;
+const SUSTAIN_LEVEL = 0.5;
+const RELEASE_TIME_S = 0.5;
 
 function startOscillator () {
     oscillator.start();
+    omhyler.gain.setValueAtTime(0, context.currentTime);
+    omhyler.gain.linearRampToValueAtTime(1, context.currentTime + ATTACK_TIME_S);
+
+    setTimeout(
+        () => omhyler.gain.linearRampToValueAtTime(SUSTAIN_LEVEL, context.currentTime + DECAY_TIME_S),
+        ATTACK_TIME_S * 1000
+    );
 }
 
 function stoppOscillator () {
-    oscillator.stop();
+    const stopptid = context.currentTime + RELEASE_TIME_S;
+    oscillator.stop(stopptid);
+    omhyler.gain.linearRampToValueAtTime(0, stopptid);
+    oscillator.addEventListener("ended", nyOscillator, {once: true});
 }
 
 function settFrekvens (event) {
@@ -38,6 +55,9 @@ function settFrekvens (event) {
     oscillator.frequency.setValueAtTime(frekvens, context.currentTime);
 }
 
+function settWaveform (event) {
+    oscillator.type = event.target.value;
+}
 
 /* finne html-elementene som skal styre funksjonene og sørge for at funksjonene kjører når vi klikker på dem */
 
@@ -52,6 +72,9 @@ stoppOscillatorKnapp.addEventListener("click", stoppOscillator);
 
 const frekvensSpak = document.getElementById("oscillator-frekvens-spak");
 frekvensSpak.addEventListener("input", settFrekvens);
+
+const oscillatorWaveform = document.getElementById("oscillator-waveform");
+oscillatorWaveform.addEventListener("change", settWaveform);
 
 
 /* canvas */
@@ -82,13 +105,14 @@ function lastBilde (event) {
                 bilde.onload = () => {
                     canvas.width = bilde.width;
                     canvas.height = bilde.height;
+                    console.log({width: bilde.width, height: bilde.height});
 
                     //context.filter = 'blur(10px)';
                     canvasCtx.drawImage(bilde, 0, 0);
                     const piksler = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
 
-                    for (let i = 0; i < piksler.data.length; i += 4) {
-                        piksler.data[i] /= 3;
+                    for (let i =  bilde.width * 2; i < piksler.data.length; i += (4 * bilde.width)) {
+                        piksler.data[i] /= 2;
                     }
                     canvasCtx.putImageData(piksler, 0, 0);
                 }
@@ -102,14 +126,3 @@ canvas.addEventListener("dragover", ikkeByttSide);
 canvas.addEventListener("drop", lastBilde);
 
 
-/*
-    var imgData = ctx.getImageData(0, 0, c.width, c.height);
-    // invert colors
-    for (var i = 0; i < imgData.data.length; i += 4) {
-        imgData.data[i] = 255 - imgData.data[i];
-        imgData.data[i + 1] = 255 - imgData.data[i + 1];
-        imgData.data[i + 2] = 255 - imgData.data[i + 2];
-        imgData.data[i + 3] = 255;
-    }
-    ctx.putImageData(imgData, 0, 0);
-*/

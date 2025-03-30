@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 main {
     margin: 0 2rem 12rem;
 }
@@ -11,11 +15,11 @@ footer {
 }
 
 #bli-lyd {
-    width: 60vw;
     height: 60vh;
+    left: 20vw;
     position: absolute;
     top: 20vh;
-    left: 20vw;
+    width: 60vw;
 
     &::backdrop {
         background: orange;
@@ -37,11 +41,12 @@ code {
 }
 
 [rel~="license"].creative-commons {
-    --cc-logo-width: 1.375em;
-    --cc-logo-margin: .1875em;
-    --cc-logo-unit: calc(var(--cc-logo-width) + var(--cc-logo-margin));
-    --cc-logo-radius: calc(var(--cc-logo-width) / 2);
     --cc-logo-background: transparent;
+    --cc-logo-margin: .1875em;
+    --cc-logo-width: 1.375em;
+
+    --cc-logo-radius: calc(var(--cc-logo-width) / 2);
+    --cc-logo-unit: calc(var(--cc-logo-width) + var(--cc-logo-margin));
 
     display: inline-block;
     white-space: collapse;
@@ -53,3 +58,122 @@ code {
         width: var(--cc-logo-width);
     }
 }
+
+#innlastede-bilder-liste {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem 3rem;
+    padding: 0;
+
+    > li {
+        --sidelength: min(20vh, 20vw);
+
+        display: block;
+        flex: 0 1 auto;
+        max-height: var(--sidelength);
+        max-width: var(--sidelength);
+        position: relative;
+
+        &:target {
+            background-color: ligthyellow;
+        }
+
+        a,
+        figure {
+            border-radius: 1rem 4rem 1rem 1rem;
+            display: block;
+            height: 100%;
+            margin: 0;
+            position: relative;
+            width: 100%;
+        }
+
+        a {
+            cursor: pointer;
+        }
+
+        figure {
+            border: 1px solid blue;
+            overflow: hidden;
+        }
+
+        img {
+            height: 100%;
+            object-fit: cover;
+            object-position: 0 50%;
+            width: 100%;
+        }
+
+        figcaption {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        > button {
+            --borderwidth: 3px;
+            --crosswidth: calc(var(--borderwidth) * sqrt(2));
+            --halfsize: calc(var(--size) / 2);
+            --posoffset: calc(calc(var(--crosswidth) * -0.5) - var(--borderwidth));
+            --pseudosize: calc(var(--size) + var(--crosswidth));
+            --size: 2rem;
+
+            background-color: red;
+            border-radius: var(--size);
+            border: var(--borderwidth) solid red;
+            box-shadow: 0 0 0 #aaa;
+            box-sizing: border-box;
+            color: transparent;
+            cursor: pointer;
+            height: var(--size);
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: box-shadow 0.1s;
+            width: var(--size);
+
+            &:hover,
+            &:focus {
+                box-shadow: .1em .2em .4em #aaa;
+                
+            }
+
+            &:active {
+                box-shadow: 0 0 0 #aaa;
+            }
+
+            /*
+            padding-left: var(--size);
+            padding-top: var(--size);
+            */
+            &::after, 
+            &::before {
+                border-style: solid;
+                border-width: var(--halfsize);
+                box-sizing: border-box;
+                content: "";
+                display: block;
+                height: var(--size);
+                position: absolute;
+                right: calc(var(--borderwidth) * -1);
+                top: calc(var(--borderwidth) * -1);
+                width: var(--size);
+            }
+
+            &::after {
+                border-color: transparent white;
+                right: var(--posoffset);
+                width: var(--pseudosize);
+            }
+
+            &::before {
+                border-color: white transparent;
+                height: var(--pseudosize);
+                top: var(--posoffset);
+            }
+        }
+    }
+}
+
+

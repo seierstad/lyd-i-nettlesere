@@ -85,8 +85,16 @@
                     <form id="bilde-skjema">
                         <label>last inn et bilde <input type="file" id="bilde-filfelt" /></label>
                     </form>
-                    <canvas id="lerret" width="200" height="200" />
-
+                    <form target="." id="innlastede-bilder-velger">
+                        <fieldset>
+                            <legend>
+                                innlastede bilder (klikk for å aktivere)
+                            </legend>
+                            <ul id="innlastede-bilder-liste">
+                            </ul>
+                        </fieldset>
+                    </form>
+                    <canvas id="lerret" width="200" height="200"></canvas>
                 </li>
                 <li>
                     hvordan laste inn filer?

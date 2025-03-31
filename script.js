@@ -18,26 +18,16 @@ const RELEASE_TIME_S = 0.5;
     (Globale variabler er en dårlig idé i seriøs kode, men for enkelhets skyld i opplæringsøyemed tenker jeg det går greit.)
 */
 
-let context;
+const sources = [];
+
+let audioContext;
+let summingAttenuator;
 let oscillator;
 let omhyler; // envelope = omhylningskurve, så en engelsk "envelope generator" blir en norsk "omhyler" :)
 let filLeser;
 let aktivtBildeIndeks = null;
 let scaleFn;
 
-/* funksjon som oppretter en audioContext og aktiver den, til å kjøres én gang, etter første brukerinteraksjon. ("bli lyd!"-knappen) */
-
-/*
-    I Javascript kan funksjonsdeklarasjoner skrives på to måter.
-    Legg merke til at deklarasjonene ikke sier noe om hvilken datatype funksjonen returnerer,
-    eller om den returnerer noe i det hele tatt,
-    til forskjell fra typede språk og språk som skiller mellom funksjoner (som returnerer noe) og metoder.
-    Dette er den opprinnelige måten:
-*/
-
-function bliLyd (event) {
-    context = new AudioContext();
-}
 
 const aktiveringsDialog = document.getElementById("bli-lyd");
 aktiveringsDialog.addEventListener("close", bliLyd, {once: true});
@@ -473,47 +463,116 @@ const toFreqInput = document.getElementById("to-freq");
 const scaleLengthInput = document.getElementById("skalatrinn");
 const scaleTypeExpInput = document.getElementById("scale-type-exp");
 const scaleTypeLinInput = document.getElementById("scale-type-lin");
+const testvolumInput = document.getElementById("testvolum");
+
 
 const getScaleFunction = (fromFreq, toFreq, steps, type = "exp") => {
     if (type === "exp") {
         const ratio = (toFreq / fromFreq);
         return step => fromFreq * Math.pow(ratio, (step / steps));
     }
-
-    const stepDiff = (toFreq - fromFreq) / (steps - 1);
-    return step => fromFreq + stepDiff * step;
+    if (steps > 1) {
+        const stepDiff = (toFreq - fromFreq) / (steps - 1);
+        return step => fromFreq + stepDiff * step;
+    }
+    const halfway = toFreq + (toFreq - fromFreq) / 2;
+    return () => halfway;
 };
 
 let fromFreq = parseFloat(fromFreqInput.value);
 let toFreq = parseFloat(toFreqInput.value);
 let scaleLength = parseInt(scaleLengthInput.value, 10);
+let testvolum = parseFloat(testvolumInput.value);
 let scaleType = "exp";
 
 const updateScaleFn = () => {
     scaleFn = getScaleFunction(fromFreq, toFreq, scaleLength, scaleType);
 };
 
-updateScaleFn();
+const disconnectSource = ({oscillator, gain}) => {
+    oscillator.stop();
+    oscillator.disconnect();
+    gain.disconnect();
+};
+
+const getSource = (audioContext, destination = null) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(testvolum, audioContext.currentTime + 0.2);
+
+    oscillator.connect(gain);
+    if (destination !== null) {
+        gain.connect(destination);
+    }
+
+    oscillator.start();
+    return {
+        oscillator,
+        gain
+    };
+};
+
+const updateSourceCount = (sources = [], count = 0) => {
+    while (sources.length > count) {
+        const source = sources.pop();
+        source.gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+        setTimeout(disconnectSource, 200, source);
+    }
+
+    while (sources.length < count) {
+        sources.push(getSource(audioContext, summingAttenuator));
+    }
+
+    if (sources.length !== 0) {
+        summingAttenuator.gain.setValueAtTime(1, audioContext.currentTime);
+    }
+};
+
+const updateFrequencies = (scaleFn, sources = []) => {
+    if (audioContext) {
+        sources.forEach(({oscillator}, i) => {
+            const f = scaleFn(i);
+            console.log(f);
+            oscillator.frequency.setValueAtTime(f, audioContext.currentTime);
+        });
+    }
+};
+
+
 
 const fromFreqHandler = (event) => {
     fromFreq = parseFloat(event.target.value);
     updateScaleFn();
+    updateFrequencies(scaleFn, sources);
 };
 
 const toFreqHandler = (event) => {
     toFreq = parseFloat(event.target.value);
     updateScaleFn();
+    updateFrequencies(scaleFn, sources);
 };
 
 const scaleLengthHandler = event => {
     scaleLength = parseInt(event.target.value);
     updateScaleFn();
+    updateSourceCount(sources, scaleLength);
+    updateFrequencies(scaleFn, sources);
 };
 
 const scaleTypeHandler = event => {
     console.log(event.target.value);
     scaleType = event.target.value;
     updateScaleFn();
+    updateFrequencies(scaleFn, sources);
+};
+
+const testvolumHandler = (event) => {
+    const volum = parseFloat(event.target.value);
+
+    sources.forEach((source, i) => {
+        source.gain.gain.setValueAtTime(volum, audioContext.currentTime);
+    });
 };
 
 fromFreqInput.addEventListener("input", fromFreqHandler);
@@ -522,5 +581,25 @@ scaleLengthInput.addEventListener("input", scaleLengthHandler);
 scaleTypeLinInput.addEventListener("input", scaleTypeHandler);
 scaleTypeExpInput.addEventListener("input", scaleTypeHandler);
 
+testvolumInput.addEventListener("input", testvolumHandler);
 
+
+/* funksjon som oppretter en audioContext og aktiver den, til å kjøres én gang, etter første brukerinteraksjon. ("bli lyd!"-knappen) */
+
+/*
+    I Javascript kan funksjonsdeklarasjoner skrives på to måter.
+    Legg merke til at deklarasjonene ikke sier noe om hvilken datatype funksjonen returnerer,
+    eller om den returnerer noe i det hele tatt,
+    til forskjell fra typede språk og språk som skiller mellom funksjoner (som returnerer noe) og metoder.
+    Dette er den opprinnelige måten:
+*/
+
+function bliLyd (event) {
+    audioContext = new AudioContext();
+    summingAttenuator = audioContext.createGain();
+    summingAttenuator.connect(audioContext.destination);
+    updateScaleFn();
+    updateSourceCount(sources, scaleLength);
+    updateFrequencies(scaleFn, sources);
+}
 

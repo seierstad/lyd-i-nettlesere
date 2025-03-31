@@ -22,10 +22,8 @@ let context;
 let oscillator;
 let omhyler; // envelope = omhylningskurve, så en engelsk "envelope generator" blir en norsk "omhyler" :)
 let filLeser;
-let startX = 0;
-let endX = 0;
-let startY = 0;
-let endY = 0;
+let aktivtBildeIndeks = null;
+let scaleFn;
 
 /* funksjon som oppretter en audioContext og aktiver den, til å kjøres én gang, etter første brukerinteraksjon. ("bli lyd!"-knappen) */
 
@@ -115,6 +113,13 @@ oscillatorWaveform.addEventListener("change", settWaveform);
 const canvas = document.getElementById("lerret");
 const canvasCtx = canvas.getContext("2d", {willReadFrequently: true});
 
+/* maske */
+const maske = document.getElementById("maske-og-posisjonsindikator");
+const maskeTopp = document.getElementById("maske-topp");
+const maskeBunn = document.getElementById("maske-bunn");
+const maskeVenstre = document.getElementById("maske-venstre");
+const maskeHoyre = document.getElementById("maske-hoyre");
+const posisjonsindikator = document.getElementById("posisjonsindikator");
 
 /* setter opp dra-og-slipp av billedfiler til canvas-elementet  */
 
@@ -138,6 +143,100 @@ const metadataToString = metadata => {
     return [size, lastModified, name].join("-");
 };
 
+const oppdaterMaske = (billedData) => {
+    const {
+        height,
+        width,
+        selection: {
+            x: {
+                start: startX,
+                end: endX
+            },
+            y: {
+                start: startY,
+                end: endY
+            }
+        }
+    } = billedData;
+
+    maske.width.baseVal.value = width;
+    maske.height.baseVal.value = height;
+    maske.viewBox.baseVal.width = width;
+    maske.viewBox.baseVal.height = height;
+
+    maskeTopp.height.baseVal.value = startY;
+
+    maskeBunn.y.baseVal.value = endY;
+    maskeBunn.height.baseVal.value = height - endY;
+
+    const selectionHeight = endY - startY;
+
+    maskeVenstre.width.baseVal.value = startX;
+    maskeVenstre.y.baseVal.value = startY;
+    maskeVenstre.height.baseVal.value = selectionHeight;
+
+    maskeHoyre.x.baseVal.value = endX;
+    maskeHoyre.width.baseVal.value = width - endX;
+    maskeHoyre.y.baseVal.value = startY;
+    maskeHoyre.height.baseVal.value = selectionHeight;
+
+    posisjonsindikator.y.baseVal.value = startY - 0.5;
+    posisjonsindikator.height.baseVal.value = selectionHeight + 1;
+    if (posisjonsindikator.x.baseVal.value < startX - 0.5) {
+        posisjonsindikator.x.baseVal.value = startX - 0.5;
+    } else if (posisjonsindikator.x.baseVal.value > endX - 1.5) {
+        posisjonsindikator.x.baseVal.value = endX - 1.5;
+    }
+
+};
+
+
+const startXSpak = document.getElementById("start-x");
+const endXSpak = document.getElementById("end-x");
+const startYSpak = document.getElementById("start-y");
+const endYSpak = document.getElementById("end-y");
+
+const getDataSelectionHandler = (dimension, constraint) => (event) => {
+    const value = parseInt(event.target.value, 10);
+    if (aktivtBildeIndeks !== null && bilder[aktivtBildeIndeks]) {
+        bilder[aktivtBildeIndeks].selection[dimension][constraint] = value;
+        oppdaterMaske(bilder[aktivtBildeIndeks]);
+    }
+};
+
+startXSpak.addEventListener("input", getDataSelectionHandler("x", "start"));
+startYSpak.addEventListener("input", getDataSelectionHandler("y", "start"));
+endXSpak.addEventListener("input", getDataSelectionHandler("x", "end"));
+endYSpak.addEventListener("input", getDataSelectionHandler("y", "end"));
+
+const oppdaterSpaker = (bildeInfo) => {
+    const {
+        height,
+        width,
+        selection: {
+            x: {
+                start: startX,
+                end: endX
+            } = {},
+            y: {
+                start: startY,
+                end: endY
+            } = {}
+        }
+    } = bildeInfo;
+
+    startXSpak.max = width;
+    startXSpak.value = startX;
+    startYSpak.max = height;
+    startYSpak.value = startY;
+
+    endXSpak.max = width;
+    endXSpak.value = endX;
+    endYSpak.max = height;
+    endYSpak.value = endY;
+
+};
+
 const visBildeICanvas = (bilde) => {
     canvas.width = bilde.naturalWidth;
     canvas.height = bilde.naturalHeight;
@@ -152,6 +251,7 @@ const visBildeICanvas = (bilde) => {
 
     canvasCtx.putImageData(piksler, 0, 0);
 };
+
 
 const findMetadataMatchIndex = (list, metadata) => {
     const {name, size, lastModified} = metadata;
@@ -168,7 +268,10 @@ const klikkIBildevelger = (event) => {
         const indeks = findMetadataMatchIndex(bilder, metadata);
 
         if (indeks !== -1) {
+            aktivtBildeIndeks = indeks;
+            oppdaterSpaker(bilder[indeks]);
             visBildeICanvas(bilder[indeks].image);
+            oppdaterMaske(bilder[indeks]);
         }
     }
 };
@@ -286,7 +389,20 @@ const visBildeIDokumentet = (bilde, metadata = {}) => {
 */
 const bildeKlart = (metadata) => (event) => {
     const image = event.target;
-    bilder.push({image, ...metadata}); // legger til bildet i javascript-listen over bilder
+    const width = event.target.naturalWidth;
+    const height = event.target.naturalHeight;
+
+    const selection = {
+        x: {
+            start: 0,
+            end: width
+        },
+        y: {
+            start: 0,
+            end: height
+        }
+    };
+    bilder.push({image, ...metadata, width, height, selection}); // legger til bildet i javascript-listen over bilder
     visBildeIDokumentet(image, metadata);
 };
 
@@ -350,3 +466,61 @@ const slettBilde = (event) => {
 const billedvelger = document.getElementById("innlastede-bilder-velger");
 billedvelger.addEventListener("submit", slettBilde);
 billedvelger.addEventListener("click", klikkIBildevelger);
+
+
+const fromFreqInput = document.getElementById("from-freq");
+const toFreqInput = document.getElementById("to-freq");
+const scaleLengthInput = document.getElementById("skalatrinn");
+const scaleTypeExpInput = document.getElementById("scale-type-exp");
+const scaleTypeLinInput = document.getElementById("scale-type-lin");
+
+const getScaleFunction = (fromFreq, toFreq, steps, type = "exp") => {
+    if (type === "exp") {
+        const ratio = (toFreq / fromFreq);
+        return step => fromFreq * Math.pow(ratio, (step / steps));
+    }
+
+    const stepDiff = (toFreq - fromFreq) / (steps - 1);
+    return step => fromFreq + stepDiff * step;
+};
+
+let fromFreq = parseFloat(fromFreqInput.value);
+let toFreq = parseFloat(toFreqInput.value);
+let scaleLength = parseInt(scaleLengthInput.value, 10);
+let scaleType = "exp";
+
+const updateScaleFn = () => {
+    scaleFn = getScaleFunction(fromFreq, toFreq, scaleLength, scaleType);
+};
+
+updateScaleFn();
+
+const fromFreqHandler = (event) => {
+    fromFreq = parseFloat(event.target.value);
+    updateScaleFn();
+};
+
+const toFreqHandler = (event) => {
+    toFreq = parseFloat(event.target.value);
+    updateScaleFn();
+};
+
+const scaleLengthHandler = event => {
+    scaleLength = parseInt(event.target.value);
+    updateScaleFn();
+};
+
+const scaleTypeHandler = event => {
+    console.log(event.target.value);
+    scaleType = event.target.value;
+    updateScaleFn();
+};
+
+fromFreqInput.addEventListener("input", fromFreqHandler);
+toFreqInput.addEventListener("input", toFreqHandler);
+scaleLengthInput.addEventListener("input", scaleLengthHandler);
+scaleTypeLinInput.addEventListener("input", scaleTypeHandler);
+scaleTypeExpInput.addEventListener("input", scaleTypeHandler);
+
+
+

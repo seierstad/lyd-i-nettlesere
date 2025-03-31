@@ -176,4 +176,56 @@ code {
     }
 }
 
+#active-image {
+    --padding: 1.5rem;
+
+    display: inline-block;
+    margin: 0 calc(var(--padding) * -1);
+    padding: var(--padding);
+    position: relative;
+
+    #maske-og-posisjonsindikator {
+        position: absolute;
+        top: var(--padding);
+        bottom: var(--padding);
+        left: var(--padding);
+        right: var(--padding);
+        overflow: visible;
+        pointer-events: none;
+    }
+
+    #posisjonsindikator {
+        stroke: blue;
+    }
+
+    input[type="range"] {
+        position: absolute;
+        appearance: none;
+    }
+
+    input[id$=x] {
+        left: var(--padding);
+        right: var(--padding);
+    }
+
+    input[id$=y] {
+        bottom: var(--padding);
+        direction: ltr;
+        top: var(--padding);
+        writing-mode: vertical-lr;
+    }
+    #start-x {
+        top: 0;
+    }
+    #end-x {
+        bottom: 0;
+    }
+    #start-y {
+        left: 0;
+    }
+    #end-y {
+        right: 0;
+    }
+}
+
 

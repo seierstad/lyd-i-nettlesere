@@ -458,6 +458,50 @@ billedvelger.addEventListener("submit", slettBilde);
 billedvelger.addEventListener("click", klikkIBildevelger);
 
 
+const getColumn = (canvasCtx, fromX, toX, fromY, toY) => (columnIndex = 0) => {
+    const maxX = toX - fromX;
+    const height = toY - fromY;
+
+    return canvasCtx.getImageData(fromX + columnIndex, fromY, 1, height);
+};
+
+const getColumnData = (column) => {
+    const r = [];
+    const g = [];
+    const b = [];
+    const a = [];
+    const rgbsum = [];
+    const pixelCount = column.data.length / 4;
+    let greyScalePixelCount = 0;
+
+    console.log(column);
+    for (let i = 0; i < column.data.length; i += 4) {
+        let sum = 0;
+        const r = column.data[i];
+        const g = column.data[i + 1];
+        const b = column.data[i + 2];
+        const a = column.data[i + 3];
+
+        r.push(r);
+        g.push(g);
+        b.push(b);
+        a.push(a);
+        rgbSum.push(r + g + b);
+
+        if (r === g && g === b) {
+            greyScalePixelCount += 1;
+        }
+    }
+
+    return {
+        r, g, b, a,
+        rgbSum,
+        allGrey: greyScalePixelCount === pixelCount
+    };
+};
+
+    // canvasCtx.putImageData(piksler, 0, 0);
+
 const fromFreqInput = document.getElementById("from-freq");
 const toFreqInput = document.getElementById("to-freq");
 const scaleLengthInput = document.getElementById("skalatrinn");
@@ -469,7 +513,7 @@ const testvolumInput = document.getElementById("testvolum");
 const getScaleFunction = (fromFreq, toFreq, steps, type = "exp") => {
     if (type === "exp") {
         const ratio = (toFreq / fromFreq);
-        return step => fromFreq * Math.pow(ratio, (step / steps));
+        return step => fromFreq * Math.pow(ratio, (step / (steps - 1)));
     }
     if (steps > 1) {
         const stepDiff = (toFreq - fromFreq) / (steps - 1);
@@ -498,15 +542,17 @@ const disconnectSource = ({oscillator, gain}) => {
 const getSource = (audioContext, destination = null) => {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
-    gain.gain.setValueAtTime(0, audioContext.currentTime);
-    gain.gain.linearRampToValueAtTime(testvolum, audioContext.currentTime + 0.2);
 
     oscillator.connect(gain);
     if (destination !== null) {
         gain.connect(destination);
     }
 
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(testvolum, audioContext.currentTime + 0.2);
+
     oscillator.start();
+
     return {
         oscillator,
         gain
@@ -525,7 +571,7 @@ const updateSourceCount = (sources = [], count = 0) => {
     }
 
     if (sources.length !== 0) {
-        summingAttenuator.gain.setValueAtTime(1, audioContext.currentTime);
+        summingAttenuator.gain.setValueAtTime(1 / sources.length, audioContext.currentTime);
     }
 };
 
@@ -568,10 +614,10 @@ const scaleTypeHandler = event => {
 };
 
 const testvolumHandler = (event) => {
-    const volum = parseFloat(event.target.value);
+    testvolum = parseFloat(event.target.value);
 
     sources.forEach((source, i) => {
-        source.gain.gain.setValueAtTime(volum, audioContext.currentTime);
+        source.gain.gain.setValueAtTime(testvolum, audioContext.currentTime);
     });
 };
 
@@ -582,6 +628,8 @@ scaleTypeLinInput.addEventListener("input", scaleTypeHandler);
 scaleTypeExpInput.addEventListener("input", scaleTypeHandler);
 
 testvolumInput.addEventListener("input", testvolumHandler);
+
+
 
 
 /* funksjon som oppretter en audioContext og aktiver den, til å kjøres én gang, etter første brukerinteraksjon. ("bli lyd!"-knappen) */

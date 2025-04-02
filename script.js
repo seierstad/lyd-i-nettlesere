@@ -461,6 +461,24 @@ const getColumnFn = (canvasCtx, fromX, toX, fromY, toY) => (columnIndex = 0) => 
     return canvasCtx.getImageData(fromX + columnIndex, fromY, 1, height);
 };
 
+const getRowFn = (canvasCtx, fromX, toX, fromY, toY) => (rowIndex = 0) {
+    const maxY = toY - fromY;
+    const width = toX - fromX;
+
+    return canvasCtx.getImageData(fromX, fromY + rowIndex, width, 1);
+};
+
+const getRowHistogram = (row, grayScale = true) => {
+    const r = [];
+    const g = [];
+    const b = [];
+    const a = [];
+    const pixelCount = row.data.length / 4;
+    let greyScalePixelCount = 0;
+    
+
+};
+
 const getColumnData = (column) => {
     const r = [];
     const g = [];
@@ -470,7 +488,6 @@ const getColumnData = (column) => {
     const pixelCount = column.data.length / 4;
     let greyScalePixelCount = 0;
 
-    console.log(column);
     for (let i = 0; i < column.data.length - 3; i += 4) {
         let sum = 0;
         const pr = column.data[i];
@@ -575,7 +592,6 @@ const updateFrequencies = (scaleFn, sources = []) => {
     if (audioContext) {
         sources.forEach(({oscillator}, i) => {
             const f = scaleFn(i);
-            console.log(f);
             oscillator.frequency.setValueAtTime(f, audioContext.currentTime);
         });
     }

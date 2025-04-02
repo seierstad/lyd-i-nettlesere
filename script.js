@@ -5,7 +5,7 @@
 
     Javascript legger ingen føringer for hva konstanter kan hete
     (ut over begrensningene som gjelder for variabelnavn, f.eks. kan de ikke inneholde matematiske operatorer
-    eller tegn som har syntaktisk betydning for språket, og de kan heller ikke starte med et siffer.)
+    eller tegn som har syntaktisk betydning for språket, og de kan heller ikke frome med et siffer.)
 */
 
 const ATTACK_TIME_S = 0.2;
@@ -27,7 +27,8 @@ let omhyler; // envelope = omhylningskurve, så en engelsk "envelope generator" 
 let filLeser;
 let aktivtBildeIndeks = null;
 let scaleFn;
-
+let columnFn = null;
+let columnIndex = 0;
 
 const aktiveringsDialog = document.getElementById("bli-lyd");
 aktiveringsDialog.addEventListener("close", bliLyd, {once: true});
@@ -35,7 +36,7 @@ aktiveringsDialog.addEventListener("close", bliLyd, {once: true});
 
 
 
-/* funksjoner for å lage en oscillator-node, koble den til lydutgangen, starte og stoppe */
+/* funksjoner for å lage en oscillator-node, koble den til lydutgangen, frome og stoppe */
 
 /*
     Dette er den nye syntaksen for å definere en funksjon i Javascript:
@@ -139,12 +140,12 @@ const oppdaterMaske = (billedData) => {
         width,
         selection: {
             x: {
-                start: startX,
-                end: endX
+                from: fromX,
+                to: toX
             },
             y: {
-                start: startY,
-                end: endY
+                from: fromY,
+                to: toY
             }
         }
     } = billedData;
@@ -154,37 +155,37 @@ const oppdaterMaske = (billedData) => {
     maske.viewBox.baseVal.width = width;
     maske.viewBox.baseVal.height = height;
 
-    maskeTopp.height.baseVal.value = startY;
+    maskeTopp.height.baseVal.value = fromY;
 
-    maskeBunn.y.baseVal.value = endY;
-    maskeBunn.height.baseVal.value = height - endY;
+    maskeBunn.y.baseVal.value = toY;
+    maskeBunn.height.baseVal.value = height - toY;
 
-    const selectionHeight = endY - startY;
+    const selectionHeight = toY - fromY;
 
-    maskeVenstre.width.baseVal.value = startX;
-    maskeVenstre.y.baseVal.value = startY;
+    maskeVenstre.width.baseVal.value = fromX;
+    maskeVenstre.y.baseVal.value = fromY;
     maskeVenstre.height.baseVal.value = selectionHeight;
 
-    maskeHoyre.x.baseVal.value = endX;
-    maskeHoyre.width.baseVal.value = width - endX;
-    maskeHoyre.y.baseVal.value = startY;
+    maskeHoyre.x.baseVal.value = toX;
+    maskeHoyre.width.baseVal.value = width - toX;
+    maskeHoyre.y.baseVal.value = fromY;
     maskeHoyre.height.baseVal.value = selectionHeight;
 
-    posisjonsindikator.y.baseVal.value = startY - 0.5;
+    posisjonsindikator.y.baseVal.value = fromY - 0.5;
     posisjonsindikator.height.baseVal.value = selectionHeight + 1;
-    if (posisjonsindikator.x.baseVal.value < startX - 0.5) {
-        posisjonsindikator.x.baseVal.value = startX - 0.5;
-    } else if (posisjonsindikator.x.baseVal.value > endX - 1.5) {
-        posisjonsindikator.x.baseVal.value = endX - 1.5;
+    if (posisjonsindikator.x.baseVal.value < fromX - 0.5) {
+        posisjonsindikator.x.baseVal.value = fromX - 0.5;
+    } else if (posisjonsindikator.x.baseVal.value > toX - 1.5) {
+        posisjonsindikator.x.baseVal.value = toX - 1.5;
     }
 
 };
 
 
-const startXSpak = document.getElementById("start-x");
-const endXSpak = document.getElementById("end-x");
-const startYSpak = document.getElementById("start-y");
-const endYSpak = document.getElementById("end-y");
+const fromXSpak = document.getElementById("from-x");
+const toXSpak = document.getElementById("to-x");
+const fromYSpak = document.getElementById("from-y");
+const toYSpak = document.getElementById("to-y");
 
 const getDataSelectionHandler = (dimension, constraint) => (event) => {
     const value = parseInt(event.target.value, 10);
@@ -192,12 +193,14 @@ const getDataSelectionHandler = (dimension, constraint) => (event) => {
         bilder[aktivtBildeIndeks].selection[dimension][constraint] = value;
         oppdaterMaske(bilder[aktivtBildeIndeks]);
     }
+    const {x, y} = bilder[aktivtBildeIndeks].selection;
+    columnFn = getColumnFn(canvasCtx, x.from, x.to, y.from, y.to);
 };
 
-startXSpak.addEventListener("input", getDataSelectionHandler("x", "start"));
-startYSpak.addEventListener("input", getDataSelectionHandler("y", "start"));
-endXSpak.addEventListener("input", getDataSelectionHandler("x", "end"));
-endYSpak.addEventListener("input", getDataSelectionHandler("y", "end"));
+fromXSpak.addEventListener("input", getDataSelectionHandler("x", "from"));
+fromYSpak.addEventListener("input", getDataSelectionHandler("y", "from"));
+toXSpak.addEventListener("input", getDataSelectionHandler("x", "to"));
+toYSpak.addEventListener("input", getDataSelectionHandler("y", "to"));
 
 const oppdaterSpaker = (bildeInfo) => {
     const {
@@ -205,25 +208,25 @@ const oppdaterSpaker = (bildeInfo) => {
         width,
         selection: {
             x: {
-                start: startX,
-                end: endX
+                from: fromX,
+                to: toX
             } = {},
             y: {
-                start: startY,
-                end: endY
+                from: fromY,
+                to: toY
             } = {}
         }
     } = bildeInfo;
 
-    startXSpak.max = width;
-    startXSpak.value = startX;
-    startYSpak.max = height;
-    startYSpak.value = startY;
+    fromXSpak.max = width;
+    fromXSpak.value = fromX;
+    fromYSpak.max = height;
+    fromYSpak.value = fromY;
 
-    endXSpak.max = width;
-    endXSpak.value = endX;
-    endYSpak.max = height;
-    endYSpak.value = endY;
+    toXSpak.max = width;
+    toXSpak.value = toX;
+    toYSpak.max = height;
+    toYSpak.value = toY;
 
 };
 
@@ -233,13 +236,6 @@ const visBildeICanvas = (bilde) => {
 
     //context.filter = 'blur(10px)';
     canvasCtx.drawImage(bilde, 0, 0);
-    const piksler = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
-
-    for (let i = bilde.width * 2; i < piksler.data.length; i += (4 * bilde.width)) {
-        piksler.data[i] /= 2;
-    }
-
-    canvasCtx.putImageData(piksler, 0, 0);
 };
 
 
@@ -384,12 +380,12 @@ const bildeKlart = (metadata) => (event) => {
 
     const selection = {
         x: {
-            start: 0,
-            end: width
+            from: 0,
+            to: width
         },
         y: {
-            start: 0,
-            end: height
+            from: 0,
+            to: height
         }
     };
     bilder.push({image, ...metadata, width, height, selection}); // legger til bildet i javascript-listen over bilder
@@ -458,7 +454,7 @@ billedvelger.addEventListener("submit", slettBilde);
 billedvelger.addEventListener("click", klikkIBildevelger);
 
 
-const getColumn = (canvasCtx, fromX, toX, fromY, toY) => (columnIndex = 0) => {
+const getColumnFn = (canvasCtx, fromX, toX, fromY, toY) => (columnIndex = 0) => {
     const maxX = toX - fromX;
     const height = toY - fromY;
 
@@ -470,25 +466,25 @@ const getColumnData = (column) => {
     const g = [];
     const b = [];
     const a = [];
-    const rgbsum = [];
+    const rgbSum = [];
     const pixelCount = column.data.length / 4;
     let greyScalePixelCount = 0;
 
     console.log(column);
-    for (let i = 0; i < column.data.length; i += 4) {
+    for (let i = 0; i < column.data.length - 3; i += 4) {
         let sum = 0;
-        const r = column.data[i];
-        const g = column.data[i + 1];
-        const b = column.data[i + 2];
-        const a = column.data[i + 3];
+        const pr = column.data[i];
+        const pg = column.data[i + 1];
+        const pb = column.data[i + 2];
+        const pa = column.data[i + 3];
 
-        r.push(r);
-        g.push(g);
-        b.push(b);
-        a.push(a);
-        rgbSum.push(r + g + b);
+        r.push(pr);
+        g.push(pg);
+        b.push(pb);
+        a.push(pa);
+        rgbSum.push(pr + pg + pb);
 
-        if (r === g && g === b) {
+        if (pr === pg && pg === pb) {
             greyScalePixelCount += 1;
         }
     }
@@ -651,3 +647,30 @@ function bliLyd (event) {
     updateFrequencies(scaleFn, sources);
 }
 
+const generatortest = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (bilder[aktivtBildeIndeks]) {
+        const {
+            selection: {
+                x: {
+                    from: fromX = 0,
+                    to: toX = 1
+                } = {},
+                y: {
+                    from: fromY = 0,
+                    to: toY = 100
+                } = {}
+            } = {}
+        } = bilder[aktivtBildeIndeks] || {};
+
+        if (event.submitter.value === "generatortest") {
+            columnFn = columnFn || getColumnFn(canvasCtx, fromX, toX, fromY, toY);
+            console.log(getColumnData(columnFn(0)));
+        }
+    }
+};
+
+const generatorskjema = document.getElementById("generatorskjema");
+generatorskjema.addEventListener("submit", generatortest);

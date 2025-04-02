@@ -214,18 +214,10 @@ code {
         top: var(--padding);
         writing-mode: vertical-lr;
     }
-    #start-x {
-        top: 0;
-    }
-    #end-x {
-        bottom: 0;
-    }
-    #start-y {
-        left: 0;
-    }
-    #end-y {
-        right: 0;
-    }
+    #from-x { top: 0;    }
+    #to-x   { bottom: 0; }
+    #from-y { left: 0;   }
+    #to-y   { right: 0;  }
 }
 
 

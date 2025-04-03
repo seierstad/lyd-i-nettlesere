@@ -13,6 +13,8 @@ const DECAY_TIME_S = 0.1;
 const SUSTAIN_LEVEL = 0.5;
 const RELEASE_TIME_S = 0.5;
 
+const SVGNS = "http://www.w3.org/2000/svg";
+
 /*
     Deklarerer variabler som kan være kjekke å ha tilgang til fra hvor som helst.
     (Globale variabler er en dårlig idé i seriøs kode, men for enkelhets skyld i opplæringsøyemed tenker jeg det går greit.)
@@ -461,39 +463,28 @@ const getColumnFn = (canvasCtx, fromX, toX, fromY, toY) => (columnIndex = 0) => 
     return canvasCtx.getImageData(fromX + columnIndex, fromY, 1, height);
 };
 
-const getRowFn = (canvasCtx, fromX, toX, fromY, toY) => (rowIndex = 0) {
+const getRowFn = (canvasCtx, fromX, toX, fromY, toY) => (rowIndex = 0) => {
     const maxY = toY - fromY;
     const width = toX - fromX;
 
     return canvasCtx.getImageData(fromX, fromY + rowIndex, width, 1);
 };
 
-const getRowHistogram = (row, grayScale = true) => {
-    const r = [];
-    const g = [];
-    const b = [];
-    const a = [];
-    const pixelCount = row.data.length / 4;
-    let greyScalePixelCount = 0;
-    
-
-};
-
-const getColumnData = (column) => {
+const splitPixelData = (pixels) => {
     const r = [];
     const g = [];
     const b = [];
     const a = [];
     const rgbSum = [];
-    const pixelCount = column.data.length / 4;
+    const pixelCount = pixels.data.length / 4;
     let greyScalePixelCount = 0;
 
-    for (let i = 0; i < column.data.length - 3; i += 4) {
+    for (let i = 0; i < pixels.data.length - 3; i += 4) {
         let sum = 0;
-        const pr = column.data[i];
-        const pg = column.data[i + 1];
-        const pb = column.data[i + 2];
-        const pa = column.data[i + 3];
+        const pr = pixels.data[i];
+        const pg = pixels.data[i + 1];
+        const pb = pixels.data[i + 2];
+        const pa = pixels.data[i + 3];
 
         r.push(pr);
         g.push(pg);
@@ -513,7 +504,71 @@ const getColumnData = (column) => {
     };
 };
 
-    // canvasCtx.putImageData(piksler, 0, 0);
+const distribution = (input, resolution = 8) => {
+    const values = Array(2 ** resolution).fill(0);
+    let min = Number.MAX_VALUE;
+    let max = Number.MIN_VALUE;
+    
+    for (let i = 0; i < input.length; i++) {
+        values[input[i]]++;
+        min = Math.min(min, input[i]);
+        max = Math.max(max, input[i]);
+    }
+
+    return {
+        values,
+        min,
+        max,
+        count: input.length
+    };
+};
+
+
+const distributionPlot = (distribution = {}) => {
+    const {
+        values,
+        min,
+        max,
+        count
+    } = distribution;
+
+    const height = values.length;
+
+    const data = values.slice(min, max - min).map(v => v / count);
+
+
+
+    const svg = document.createElementNS(SVGNS, "svg");
+    svg.width = 100%;
+    svg.height = 100%;
+    svg.viewBox = `0 0 ${values.length} ${height}`;
+
+    const path = document.createElementNS(SVGNS, "path");
+
+    let d = "";
+    if (min > 0) {
+        d += `M0 0,h${min}`;
+    }
+    d += data.map((v, i, arr) => {
+        const prev = (i === 0) ? 0 : arr[i - 1];
+
+        if (i === 0 && min === 0) {
+            return `M0 ${v * height}`;
+        }
+        if (v === prev) {
+            return ` h1`;
+        }
+
+        return ` l1 ${(v - prev) * height}`;
+    }).join("");
+
+    if (max < values.length) {
+        d += ` l1 ${data[data.length - 1] * height} h${values.length - max}`;
+    }
+    path.d = d;
+    svg.appendChild(path);
+    return svg;
+};
 
 const fromFreqInput = document.getElementById("from-freq");
 const toFreqInput = document.getElementById("to-freq");
@@ -683,7 +738,7 @@ const generatortest = (event) => {
 
         if (event.submitter.value === "generatortest") {
             columnFn = columnFn || getColumnFn(canvasCtx, fromX, toX, fromY, toY);
-            console.log(getColumnData(columnFn(0)));
+            console.log(splitPixelData(columnFn(0)));
         }
     }
 };

@@ -2,6 +2,7 @@
   "name": "lyd-i-nettlesere",
   "version": "0.0.1",
   "description": "Filer til miniseminaret \"Lyd i nettlesere\"",
+  "type": "module",
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,6 +22,19 @@
   },
   "homepage": "https://github.com/seierstad/lyd-i-nettlesere#readme",
   "devDependencies": {
-    "serve": "^14.2.4"
+    "@eslint/js": "^9.24.0",
+    "eslint": "^9.24.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsdoc": "^50.6.9",
+    "eslint-plugin-json": "^4.0.1",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "serve": "^14.2.4",
+    "stylelint": "^16.18.0"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.0.3",
+    "htm": "^3.1.1",
+    "preact": "^10.26.5"
   }
 }

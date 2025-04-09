@@ -3,131 +3,43 @@
 
     <head>
         <meta charset="utf-8" />
-        <title>Lyd i nettlesere</title>
+        <title>ekkogram-sonifisering</title>
         <base href="." />
         <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
-        <meta name="description" content="Hvordan får man nettlesere til å lage lyd?" />
+        <meta name="description" content="Ekkogram-sonifisering" />
         <link href="./utseende.css" rel="stylesheet" type="text/css" />
-        <script defer src="./script.js"></script>
+
+        <script type="importmap">
+          {
+            "imports": {
+              "preact/debug": "./node_modules/preact/debug/dist/debug.module.js",
+              "preact": "./node_modules/preact/dist/preact.module.js",
+              "preact/hooks": "./node_modules/preact/hooks/dist/hooks.module.js",
+              "preact/devtools": "./node_modules/preact/devtools/dist/devtools.module.js",
+              "@preact/signals": "./node_modules/@preact/signals/dist/signals.module.js",
+              "@preact/signals-core": "./node_modules/@preact/signals-core/dist/signals-core.module.js",
+              "htm": "./node_modules/htm/dist/htm.module.js",
+              "htm/preact": "./node_modules/htm/preact/index.module.js"
+            }
+          }
+        </script>
+        <!--script src="./node_modules/es-module-shims/dist/es-module-shims.js"></script-->
+
+        <script defer type="module" src="./script.js"></script>
     </head>
 
     <body>
-        <h1>Lyd i nettlesere</h1>
+        <h1>ekkogram-sonifisering</h1>
         <main>
-            <p>Denne nettsiden er et utgangspunkt for miniseminaret "Lyd i nettlesere".</p>
-            <details>
-                <summary>Derfor er den verken en fryd for øyet eller strukturert som et vanlig nettsted.</summary>
-                <p>For lettere å kunne holde fokus på lyd, er det ikke lagt noe innsats i å få denne siden til å se pen ut. I en nettside ment for publisering ville man nok ha lagt javascript-koden i egne filer og brukt ferdige javascript-kodebibliotek for å kunne legge til og fjerne knapper, spaker og visualiseringer ved behov. Jeg har erfart at ferdige kodebibliotek kan komme i veien for læring, siden det blir vanskelig å skille mellom hva biblioteket gjør og hva koden gjør.</p>
-            </details>
-            <h2>Hovedpunkter</h2>
-            <ul>
-                <li>Hvorfor Javascript?</li>
-                <li>
-                    Begrensninger i Javascript
-                    <ul>
-                        <li>i utgangspunktet éntrådet</li>
-                        <li>i utgangspunktet svakt typet med automatisk casting (med gode og dårlige løsninger)</li>
-                        <li>i utgangspunktet tolket først under kjøring</li>
-                    </ul>
-                </li>
-                <li>
-                    Lyd: AudioContext
-                    <dialog open id="bli-lyd">
-                        <form method="dialog">
-                            <button>bli lyd!</button>
-                        </form>
-                    </dialog>
-                    <ul>
-                        <li>Oscillator
-                            <button id="ny-oscillator">lag oscillator</button>
-                            <button id="start-oscillator">start oscillator</button>
-                            <button id="stopp-oscillator">stopp oscillator</button>
-                            <label>
-                                oscillatorfrekvens:
-                                <input type="range" min="20" max="1000" step="10" value="440" id="oscillator-frekvens-spak" />
-                            </label>
-                            <fieldset id="oscillator-waveform">
-                                <legend>bølgeform</legend>
-                                <label>sinus <input type="radio" name="oscillator-form" value="sine" checked /></label>
-                                <label>trekant <input type="radio" name="oscillator-form" value="triangle" /></label>
-                                <label>firkant <input type="radio" name="oscillator-form" value="square" /></label>
-                                <label>sagtann <input type="radio" name="oscillator-form" value="sawtooth" /></label>
-                            </fieldset>
-                        </li>
-                        <li>Gain</li>
-                        <li>BufferSource</li>
-                        <li>ConstantSource</li>
-                        <li>BiquadFilter</li>
-                        <li>IIRFilter</li>
-                        <li>Convolver</li>
-                        <li>ChannelSplitter og ChannelMerger</li>
-                        <li>Pan</li>
-                        <li>Delay</li>
-                        <li>AudioWorklet</li>
-                    </ul>
-                </li>
-                <li>
-                    fordeler med HTML
-                    <ul>
-                        <li>innholdet blir tilgjengelig for alle som har tilgang til en nettleser</li>
-                        <li>opprinnelig laget for eksplisitt å kunne uttrykke mening, struktur og sammenhenger i tekst</li>
-                        <li>støtte for avanserte tabeller og skjemaer</li>
-                        <li>kodet riktig kan dokumenter leses, navigeres og endres uavhengig av skjerm, slik at innholdet blir tilgjengelig for blinde og svaksynte (og søkemotorer)</li>
-                    </ul>
-                </li>
-                <li>
-                    Grafikk: canvas
-                    <ul>
-                        <li>2D-tegning</li>
-                        <li>å vise bilder</li>
-                        <li>å lese pikselverdier</li>
-                    </ul>
-                    <form id="bilde-skjema">
-                        <label>last inn et bilde <input type="file" id="bilde-filfelt" /></label>
-                    </form>
-                    <form target="." id="innlastede-bilder-velger">
-                        <fieldset>
-                            <legend>
-                                innlastede bilder (klikk for å aktivere)
-                            </legend>
-                            <ul id="innlastede-bilder-liste">
-                                <li id="288278-1742394328494-ekkogram.png">
-                                    <a href="#288278-1742394328494-ekkogram.png">
-                                        <figure>
-                                            <img src="./eksempeldata/ekkogram.png" />
-                                            <figcaption>
-                                                <dl>
-                                                    <dt>filnavn</dt><dd>ekkogram.png</dd>
-                                                    <dt>endret</dt><dd><time title="2025-03-19T14:25:28.494Z">2025-03-19</time></dd>
-                                                    <dt>størrelse</dt><dd><span title="288278 bytes">282 kB</span></dd>
-                                                </dl>
-                                            </figcaption>
-                                        </figure>
-                                    </a>
-                                    <button title="fjern ekkogram.png" value="288278-1742394328494-ekkogram.png">fjern ekkogram.png</button>
-                                </li>
-                            </ul>
-                        </fieldset>
-                    </form>
-
-                    <section id="visuell-analyse">
-                        <div id="active-image">
-                            <input id="from-x" type="range" min="0" max="200" value="0" step="1" />
-                            <input id="from-y" type="range" min="0" max="200" value="0" step="1" />
-                            <canvas id="lerret" width="200" height="200"></canvas>
-                            <svg id="maske-og-posisjonsindikator" width="200" height="200" viewBox="0 0 200 200">
-                                <g id="maske" fill="#ddda">
-                                    <rect id="maske-topp" x="0" width="100%" y="0" height="0" />
-                                    <rect id="maske-bunn" x="0" width="100%" y="200" height="0" />
-                                    <rect id="maske-venstre" x="0" width="0" y="0" height="200" />
-                                    <rect id="maske-hoyre" x="200" width="0" y="0" height="200" />
-                                </g>
-                                <rect id="posisjonsindikator" x="-0.5" width="2" y="-0.5" height="201" stroke-width="1" stroke="white" fill="none"/>
-                            </svg>
-                            <input id="to-x" type="range" min="0" max="200" value="200" step="1" />
-                            <input id="to-y" type="range" min="0" max="200" value="200" step="1" />
-                        </div>
-                    </section>
+            <p>Her er nettsiden med mindre tekst, mer oversiktlig filstruktur og noen kodebibliotek som gjør programmeringen enklere uten å innføre så mye mystikk.</p>
+            <dialog open id="bli-lyd">
+                <form method="dialog">
+                    <button>bli lyd!</button>
+                </form>
+            </dialog>
+            <div class="preact-innhold-vises-her">
+                preact kjører ikke....?!?
+            </div>
 
                     <section>
                         <fieldset>
@@ -170,44 +82,7 @@
                         </form>
                     </section>
                 </li>
-                <li>
-                    hvordan laste inn filer?
-                    <p>hvis vi vet på forhånd hvilke filer vi vil leke med, kan de lastes sammen med resten av filene når siden lastes, (f.eks. angitt som src-atributt i <code>&lt;audio&gt;</code>-elementer i html-koden)</p>
-                    <p>for å la brukere av siden laste inn egne filer, trenger vi et <code>&lt;input type="file"&gt;</code>-element og bruke javascript til å håndtere det. (I tillegg er det hyggelig å legge inn støtte for dra-og-slipp-lasting av filer)</p>
-                </li>
-                <li>
-                    strømmer
-                </li>
-                <li>
-                    sette opp lokal webserver?
-                    <ul>
-                        <li><em>hvorfor</em>: Grunnleggende javascript-funksjoner fungerer når man åpner et html-dokument direkte fra filsystemet, men en del lydrelaterte funksjoner (f.eks. workers/worklets) fungerer (så vidt jeg vet) ikke uten at filene lastes fra en server.</li>
-                        <li><em>hvordan</em>: <a href="https://github.com/seierstad/lyd-i-nettlesere">git-kodebrønnen til denne siden</a> inneholder også filene package.js og serve.json, som inneholder nesten alt man trenger for å starte en lokal webserver med denne siden som landingsside. <p>denne filen brukes av node.js (en javascript-motor som ikke er del av en nettleser) og npm (node package manager) for å laste ned og starte en minimal server.</p><p>Jeg har aldri installert node.js og npm i Windows, men oppskrifter finnes bl.a. <a href="https://www.geeksforgeeks.org/install-node-js-on-windows/">her</a>.</li>
-                        <li>når node.js og npm er installert, åpner man kommandolinjen og navigerer til katalogen hvor filene ligger. Deretter kjører man kommandoen <code>npm install</code> for å laste ned serverfilene.</li>
-                        <li>når serveren er installert, starter man den ved å kjøre <code>npm start</code>. Serveren finner en ledig port (vanligvis port 3000, hvis den ikke er brukt til noe annet) og begynner å lytte etter forespørsler fra en nettleser.</li>
-                        <li>når serveren kjører, kan man åpne en nettleser og skrive <code>http://localhost:3000</code> i adressefeltet (eller et annet tall enn 3000 hvis serveren har valgt en annen port)</li>
-                        <li>siden som vises er filene index.html (altså denne), utseende.css (definisjoner av hvordan ting skal se ut) og script.js (javascript-koden) som serveren leser fra det lokale filsystemet. Når du gjør endringer i disse filene, vil resultatet vises i nettleseren når du laster siden på nytt (trykk <code>Ctrl + R</code> eller <code>F5</code>)</li>
-                    </ul>
-                </li>
-                <li>
-                    Gode kilder / dokumentasjon:
-                    <dl>
-                        <dt><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API hos MDN</a></dt>
-                        <dd><abbr title="Mozilla Developer Network">MDN</abbr> er det beste stedet å finne praktisk anvendelig og oppdatert informasjon om de fleste webstandarder</dd>
-                        <dt><a href="https://caniuse.com">caniuse.com</a></dt>
-                        <dd>
-                            <details>
-                                <summary>Standardene som definerer hvordan nettsider fungerer er under stadig utvikling. Her er en god og oppdatert oversikt over hvilke deler av vedtatte og eksperimentelle metoder som støttes i ulike nettlesere.</summary>
-                                <h3>et par eksempler:</h3>
-                                <p>Web Audio-APIet startet som et eksperiment i Firefox, før Mozilla foreslo å standardisere det. Gjennom standardiseringsprosessen kom det gode innspill fra folk utenfor Mozilla, så standarden ble temmelig forskjellig fra Mozillas implementasjon. I en overgangsfase var støtten for den vedtatte standarden derfor mye bedre i Chrome enn i Firefox, siden utviklerne i Mozilla ikke bare måtte implementere den nye standarden, men også rydde bort gammel kode.</p>
-                                <p>Web MIDI-APIet var lenge kun støttet i Chrome. Google har hatt en lei tendens til å underkommunisere at eksperimentell funksjonalitet de har lagt til i Chrome er nettopp ikke-standardiserte eksperimenter. (Heldigvis har Mozilla lagt til støtte for MIDI i Firefox nå. Microsoft Edge er bare Chrome med annen innpakning og Bing som standard-søkemotor, så der har støtten vært på plass lenge. Apple tjener gode penger på sin App-store, så de holder igjen funksjonalitet som gjør det mulig å lage web-applikasjoner så lenge de kan. Altså må vi nok vente lenge på MIDI-støtte i Safari. Det hjelper heller ikke å installere andre nettlesere på iDingser, for Apple har bestemt at alle andre nettlesere må bruke Safari-motoren i deres bærbare dingser. <quote>"You can put lipstick on a pig, but it's still a pig."</quote>)</p>
-                            </details>
-                        </dd>
-                </li>
             </ul>
-
-
-
 
         </main>
         <!-- herfra til slutten av filen er det bare ikke-lydrelatert html-kode -->

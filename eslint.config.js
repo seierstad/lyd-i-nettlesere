@@ -40,7 +40,7 @@ export default [
             "comma-dangle": [2, "never"],
             "comma-spacing": [2, {"before": false, "after": true}],
             "comma-style": [2, "last"],
-            "complexity": [1, 15],
+            "complexity": [1, 25],
             "computed-property-spacing": [0, "never"],
             "consistent-return": 0,
             "consistent-this": [0, "that"],

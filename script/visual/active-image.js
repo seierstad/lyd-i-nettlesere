@@ -2,10 +2,7 @@ import {html} from "htm/preact";
 import {useEffect, useRef, useContext, useMemo} from "preact/hooks";
 
 import {AppStateContext} from "./state.js";
-
-const Histogram = (props = {}) => {
-    return html`<svg class="histogram"></svg>`;
-};
+import {Histogram} from "./histogram.js";
 
 
 const ActiveImage = (props = {}) => {
@@ -16,13 +13,15 @@ const ActiveImage = (props = {}) => {
                 [idx.value]: image = {}
             } = []
         },
-        canvasContext = {value: null}
+        canvasContext = {value: null},
+        histogramData = {}
     } = useContext(AppStateContext);
 
     const {
         handlers: {
             dataSelection = {},
-            setCanvasContext
+            setCanvasContext,
+            updateHistogramData
         } = {}
     } = props;
 
@@ -30,19 +29,21 @@ const ActiveImage = (props = {}) => {
         height = 200,
         width = 200,
         img = null,
-        selection: {
-            from: {
-                x: fromX = {value: 0},
-                y: fromY = {value: 0}
-            } = {},
-            to: {
-                x: toX = {value: width},
-                y: toY = {value: height}
-            } = {}
-        } = {},
+        selection = {},
         position = 0
     } = image;
 
+
+    const {
+        from: {
+            x: fromX = {value: 0},
+            y: fromY = {value: 0}
+        } = {},
+        to: {
+            x: toX = {value: width},
+            y: toY = {value: height}
+        } = {}
+    } = selection;
 
     if (!image) {
         return null;
@@ -73,54 +74,6 @@ const ActiveImage = (props = {}) => {
         }
     }, [canvasContext, img]);
 
-    const addPixel = (obj, pixel) => {
-        obj.distribution[pixel] += 1;
-        obj.min = Math.min(obj.min, pixel);
-        obj.max = Math.max(obj.max, pixel);
-    };
-
-    const histogramData = useMemo(() => {
-        if (canvasContext === null) {
-            return [{r: [], g: [], b: []}];
-        }
-        const result = [];
-
-        const width = toX.value - fromX.value;
-
-        for (let i = fromY.value; i < toY.value; i += 1) {
-            const row = canvasContext.getImageData(fromX.value, fromY.value + i, width, 1);
-            const r = {
-                distribution: new Array(256).fill(0),
-                min: 255,
-                max: 0
-            };
-            const g = {
-                distribution: new Array(256).fill(0),
-                min: 255,
-                max: 0
-            };
-            const b = {
-                distribution: new Array(256).fill(0),
-                min: 255,
-                max: 0
-            };
-            const a = {
-                distribution: new Array(256).fill(0),
-                min: 255,
-                max: 0
-            };
-
-            for (let j = 0; j < row.data.length; j += 4) {
-                addPixel(r, row.data[j]);
-                addPixel(g, row.data[j + 1]);
-                addPixel(b, row.data[j + 2]);
-                addPixel(a, row.data[j + 3]);
-            }
-            result.push({r, g, b, a});
-        }
-        return result;
-
-    }, [canvasContext, fromX.value, toX.value, fromY.value, toY.value]);
 
     return html`
         <section id="visuell-analyse">
@@ -152,7 +105,7 @@ const ActiveImage = (props = {}) => {
                     onInput=${dataSelection.to.y}
                 />
             </div>
-            <${Histogram} data=${histogramData} />
+            <${Histogram} selection=${selection} data=${histogramData} updateFn=${updateHistogramData} />
         </section>
     `;
 };

@@ -220,4 +220,21 @@ code {
     #to-y   { right: 0;  }
 }
 
+.histogram {
+    filter: invert();
+    padding-left: 2rem;
+
+    .background {
+        fill: black;
+    }
+
+    .channel {
+        mix-blend-mode: lighten;
+
+        &.r { fill: #0ff; stroke: #0ff; }
+        &.g { fill: #f0f; stroke: #f0f; }
+        &.b { fill: #ff0; stroke: #ff0; }
+    }
+}
+
 

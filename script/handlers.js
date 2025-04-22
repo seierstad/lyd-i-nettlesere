@@ -15,12 +15,20 @@ const getHandlers = (state) => ({
     },
     dataSelection: {
         from: {
-            x: event => state.images.value[state.activeImageIndex.value].selection.from.x.value = parseInt(event.target.value, 10),
-            y: event => state.images.value[state.activeImageIndex.value].selection.from.y.value = parseInt(event.target.value, 10)
+            x: event => {
+                state.images.value[state.activeImageIndex.value].selection.from.x.value = parseInt(event.target.value, 10);
+            },
+            y: event => {
+                state.images.value[state.activeImageIndex.value].selection.from.y.value = parseInt(event.target.value, 10);
+            }
         },
         to: {
-            x: event => state.images.value[state.activeImageIndex.value].selection.to.x.value = parseInt(event.target.value, 10),
-            y: event => state.images.value[state.activeImageIndex.value].selection.to.y.value = parseInt(event.target.value, 10)
+            x: event => {
+                state.images.value[state.activeImageIndex.value].selection.to.x.value = parseInt(event.target.value, 10);
+            },
+            y: event => {
+                state.images.value[state.activeImageIndex.value].selection.to.y.value = parseInt(event.target.value, 10);
+            }
         }
     },
     setCanvasContext: context => state.canvasContext = context,
@@ -63,7 +71,8 @@ const getHandlers = (state) => ({
                 ...state.images.value.slice(matchingIndex + 1)
             ];
         }
-    })
+    }),
+    updateHistogramData: data => state.histogramData.value = data
 });
 
 

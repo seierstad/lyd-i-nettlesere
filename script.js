@@ -8,6 +8,7 @@ import {handlers, AppHandlerContext} from "./script/handlers.js";
 
 const appContainer = document.querySelector(".preact-innhold-vises-her");
 
+
 render(
     html`
         <${AppStateContext.Provider} value=${state}>

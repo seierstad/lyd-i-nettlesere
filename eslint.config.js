@@ -9,12 +9,27 @@ export default [
     js.configs.recommended,
     jsdoc.configs["flat/recommended"],
     {
+        "files": ["**/*-worker.js"],
         "languageOptions": {
-            "ecmaVersion": 2022,
-            "sourceType": "module",
+            "parserOptions": {
+                "ecmaVersion": "latest",
+                "sourceType": "script"
+            }
+        }
+    },
+    {
+        "files": ["**/*.js"],
+        "languageOptions": {
+            "parserOptions": {
+                "ecmaVersion": "latest",
+                "sourceType": "module"
+            }
+        }
+    },
+    {
+        "languageOptions": {
             "globals": {
-                ...globals.browser,
-                ...globals.node
+                ...globals.browser
             }
         },
         "linterOptions": {
@@ -236,12 +251,6 @@ export default [
             "wrap-iife": 0,
             "wrap-regex": 0,
             "yoda": [2, "never"]
-        }
-    }, {
-        "files": ["*-worker.js"],
-        "parserOptions": {
-            "ecmaVersion": "latest",
-            "sourceType": "script"
         }
     }
 ];

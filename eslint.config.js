@@ -1,15 +1,13 @@
 import js from "@eslint/js";
+import globals from "globals";
 import import_plugin from "eslint-plugin-import";
 import json_plugin from "eslint-plugin-json";
 import jsdoc from "eslint-plugin-jsdoc";
-import globals from "globals";
+import html from "@html-eslint/eslint-plugin";
 
-
-export default [
-    js.configs.recommended,
-    jsdoc.configs["flat/recommended"],
+/*
     {
-        "files": ["**/*-worker.js"],
+        "files": ["**//*-worker.js", "**//*.config.js"],
         "languageOptions": {
             "parserOptions": {
                 "ecmaVersion": "latest",
@@ -17,6 +15,11 @@ export default [
             }
         }
     },
+*/
+
+export default [
+    js.configs.recommended,
+    jsdoc.configs["flat/recommended"],
     {
         "files": ["**/*.js"],
         "languageOptions": {
@@ -39,9 +42,73 @@ export default [
         "plugins": {
             import: import_plugin,
             json: json_plugin,
-            jsdoc: jsdoc
+            jsdoc: jsdoc,
+            "@html-eslint": html
         },
         "rules": {
+            "@html-eslint/attrs-newline": "error",
+            "@html-eslint/element-newline": [
+                "error",
+                {
+                    inline: ["$inline"]
+                }
+            ],
+            "@html-eslint/id-naming-convention": ["error", "kebab-case"],
+            "@html-eslint/indent": "error",
+            "@html-eslint/max-element-depth": "error",
+            "@html-eslint/no-abstract-roles": "error",
+            "@html-eslint/no-accesskey-attrs": "error",
+            "@html-eslint/no-aria-hidden-body": "error",
+            "@html-eslint/no-duplicate-attrs": "error",
+            "@html-eslint/no-duplicate-class": "error",
+            "@html-eslint/no-duplicate-id": "error",
+            "@html-eslint/no-extra-spacing-attrs": ["error", {
+                "enforceBeforeSelfClose": true,
+                "disallowMissing": true,
+                "disallowTabs": true,
+                "disallowInAssignment": true
+            }],
+            "@html-eslint/no-extra-spacing-text": "error",
+            "@html-eslint/no-heading-inside-button": "error",
+            "@html-eslint/no-inline-styles": 1,
+            "@html-eslint/no-invalid-role": "error",
+            "@html-eslint/no-multiple-empty-lines": "error",
+            "@html-eslint/no-multiple-h1": "error",
+            "@html-eslint/no-nested-interactive": "error",
+            "@html-eslint/no-non-scalable-viewport": "error",
+            "@html-eslint/no-obsolete-tags": "error",
+            "@html-eslint/no-positive-tabindex": "error",
+            "@html-eslint/no-restricted-attr-values": "error",
+            "@html-eslint/no-restricted-attrs": "error",
+            "@html-eslint/no-script-style-type": "error",
+            "@html-eslint/no-skip-heading-levels": "error",
+            "@html-eslint/no-target-blank": "error",
+            "@html-eslint/no-trailing-spaces": "error",
+            "@html-eslint/prefer-https": "error",
+            "@html-eslint/require-attrs": "error",
+            "@html-eslint/require-button-type": "error",
+            "@html-eslint/require-closing-tags": [
+                "error",
+                {
+                    "selfClosing": "always",
+                    "selfClosingCustomPatterns": ["circle", "rect", "path", "line"]
+                }
+            ],
+            "@html-eslint/require-doctype": "error",
+            "@html-eslint/require-explicit-size": "error",
+            "@html-eslint/require-form-method": "error",
+            "@html-eslint/require-frame-title": "error",
+            "@html-eslint/require-img-alt": "error",
+            "@html-eslint/require-input-label": "error",
+            "@html-eslint/require-lang": "error",
+            "@html-eslint/require-li-container": "error",
+            "@html-eslint/require-meta-charset": "error",
+            "@html-eslint/require-meta-description": "error",
+            "@html-eslint/require-meta-viewport": "error",
+            "@html-eslint/require-open-graph-protocol": "error",
+            "@html-eslint/require-title": "error",
+            "@html-eslint/sort-attrs": ["error", {"priority": []}],
+            "@html-eslint/use-baseline": "error",
             "accessor-pairs": 0,
             "array-bracket-spacing": [0, "never"],
             "arrow-body-style": [0, "as-needed"],
@@ -93,7 +160,7 @@ export default [
             "import/no-webpack-loader-syntax": 2,
             "import/order": 2,
             "import/unambiguous": 1,
-            "indent": ["error", 4],
+            "indent": ["error", 4, {"SwitchCase": 1}],
             "init-declarations": 0,
             "jsx-quotes": [2, "prefer-double"],
             "key-spacing": [2, {"beforeColon": false, "afterColon": true, "mode": "minimum"}],

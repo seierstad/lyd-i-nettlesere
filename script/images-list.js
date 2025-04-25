@@ -69,6 +69,7 @@ const ImagesList = (props = {}) => {
     return html`
         <form
             id="innlastede-bilder-velger"
+            method="post"
             ondragover=${noop}
             ondrop=${loadImages}
             onsubmit=${submitHandler}
@@ -76,18 +77,35 @@ const ImagesList = (props = {}) => {
             <fieldset>
                 <legend>innlastede bilder (klikk for å aktivere, dra og slipp eller trykk "last inn" for å legge til flere)</legend>
                 <ul id="innlastede-bilder-liste">
-                    ${images.value.map(img => html`<${ImageView} ...${img} setActive=${setActiveImage} />`)}
+                    ${images.value.map(img => html`
+                        <${ImageView}
+                            ...${img}
+                            setActive=${setActiveImage}
+                        />
+                    `)}
                 </ul>
                 ${fileReaders.length > 0 ? html`
                     <ul>
                         ${fileReaders.map(fr => html`
                             <li>
-                                <${FileReaderView} completedHandler=${fileLoadedHandler} ...${fr} />
+                                <${FileReaderView}
+                                    completedHandler=${fileLoadedHandler}
+                                    ...${fr}
+                                />
                             </li>
                         `)}
                     </ul>
                 ` : null}
-                <label>last inn et bilde <input type="file" id="bilde-filfelt" multiple accept="image/*" oninput=${fileInputHandler} /></label>
+                <label>
+                    last inn et bilde
+                    <input
+                        accept="image/*"
+                        id="bilde-filfelt"
+                        multiple
+                        oninput=${fileInputHandler}
+                        type="file"
+                    />
+                </label>
             </fieldset>
         </form>
     `;

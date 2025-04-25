@@ -2,9 +2,10 @@ import "preact/debug";
 import {html, render} from "htm/preact";
 
 import {ImagesList} from "./script/images-list.js";
-import {ActiveImage} from "./script/active-image.js";
+import {ActiveImage} from "./script/visual/active-image.js";
 import {state, AppStateContext} from "./script/state.js";
-import {handlers, AppHandlerContext} from "./script/handlers.js";
+import {handlers, AppHandlersContext} from "./script/handlers.js";
+import {Visual} from "./script/visual/visual.js";
 
 const appContainer = document.querySelector(".preact-innhold-vises-her");
 
@@ -12,10 +13,10 @@ const appContainer = document.querySelector(".preact-innhold-vises-her");
 render(
     html`
         <${AppStateContext.Provider} value=${state}>
-            <${AppHandlerContext.Provider} value=${handlers}>
+            <${AppHandlersContext.Provider} value=${handlers}>
                 <h1>smilefjøs</h1>
                 <${ImagesList} images=${state.images} handlers=${handlers} />
-                <${ActiveImage} handlers=${handlers} />
+                <${Visual} />
             <//>
         <//>
     `,

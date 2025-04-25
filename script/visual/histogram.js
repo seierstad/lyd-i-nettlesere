@@ -1,36 +1,36 @@
 import {html} from "htm/preact";
 import {useEffect, useRef, useContext, useMemo} from "preact/hooks";
 
-import {AppStateContext} from "./state.js";
+import {AppStateContext} from "../state.js";
+import {AppHandlersContext} from "../handlers.js";
 
-
-const histogramWorker = new Worker(new URL("./histogram-data-worker.js", import.meta.url));
+const histogramWorker = new Worker(new URL("./histogram-data-worker.js", import.meta.url), {"type": "module"});
 
 const ChannelLine = (props = {}) => {
     const {
         channelData: {
             distribution = [],
             minValue,
-            maxValue,
-            maxCount
+            maxValue
         } = {},
         lineNumber = 0,
         offsetX = 0,
         offsetY = 0,
         scaleY = 1,
         scaleX = 1,
-        width = 1
+        width = 1,
+        spacingY = 1
     } = props;
 
-    let pathData = `M${offsetX},${offsetY + lineNumber}`;
+    let pathData = `M${offsetX},${offsetY + lineNumber * spacingY}`;
     const variableRegion = Array.from(distribution.slice(minValue, maxValue + 1)).map(v => v / width);
     const diffValues = variableRegion.map((v, i, a) => i === 0 ? v : v - a[i - 1]);
 
     if (minValue !== 0) {
-        pathData += ` m${minValue},${diffValues[0] * scaleY} `;
+        pathData += ` m${(minValue - 1) * scaleX},0`;
     }
 
-    pathData += diffValues.reduce((acc, curr, i) => {
+    pathData += diffValues.reduce((acc, curr, i, arr) => {
 
         if (curr === 0) {
             return {
@@ -43,9 +43,10 @@ const ChannelLine = (props = {}) => {
             variableRegion[i - 1] === 0 ? ` m${acc.horisontal * scaleX}, 0` : ` h${acc.horisontal * scaleX}`
         ) : "");
 
+        const final = (i !== arr.length - 1) ? "" : (i === distribution.length - 1) ? ` v${(distribution[maxValue] / width) * scaleY}` : ` l${scaleX},${(distribution[maxValue] / width) * scaleY}`;
         return {
             ...acc,
-            result: acc.result + horisontal + ` l${scaleX},${-curr * scaleY}`,
+            result: acc.result + horisontal + ` l${scaleX},${-curr * scaleY}` + final,
             horisontal: 0
         };
 
@@ -84,7 +85,16 @@ const ChannelDots = (props = {}) => {
     const variableRegion = Array.from(distribution.slice(minValue, maxValue + 1)).map(v => v / width);
 
     const y = offsetY + lineNumber;
-    return variableRegion.map((d, i) => d !== 0 ? html`<circle cx=${offsetX + minValue + i * scaleX} cy=${y} r=${d * scaleX} opacity=${d} />` : null);
+    return (
+        variableRegion.map((d, i) => d !== 0 ? html`
+            <circle
+                cx=${offsetX + minValue + i * scaleX}
+                cy=${y}
+                opacity=${d}
+                r=${d * scaleX}
+            />
+        ` : null)
+    );
 };
 
 
@@ -92,8 +102,17 @@ const Histogram = (props = {}) => {
 
     const {
         canvasContext = null,
-        histogramData = {value: null}
+        histogram: {
+            rows = {value: null},
+            grouping = {value: 50},
+            maxRelativeCount = {value: {r: 0, g: 0, b: 0}},
+            visibility = {}
+        } = {}
     } = useContext(AppStateContext);
+
+    const {
+        histogram: handlers = {}
+    } = useContext(AppHandlersContext);
 
     const {
         selection: {
@@ -101,23 +120,19 @@ const Histogram = (props = {}) => {
                 x: fromX = {value: 0},
                 y: fromY = {value: 10}
             } = {},
-            to: {
-                x: toX = {value: 0},
-                y: toY = {value: 10}
-            } = {}
-        } = {},
-        updateFn
+            allGrey = {value: false},
+            width = {value: 10},
+            height = {value: 10}
+        } = {}
     } = props;
 
-    const width = toX.value - fromX.value;
-    const height = toY.value - fromY.value;
-
     const workerMessageHandler = (event = {}) => {
-        console.log("melding fra worker!!!", event);
+
         const {type, data} = event.data;
         switch (type) {
             case "fullData": {
-                updateFn(data);
+                const {allGrey, maxRelativeCount} = event.data;
+                handlers.updateData(data, allGrey, maxRelativeCount);
                 break;
             }
 
@@ -134,50 +149,68 @@ const Histogram = (props = {}) => {
 
     useEffect(() => {
         if (canvasContext !== null) {
-            const width = toX.value - fromX.value;
-            const height = toY.value - fromY.value;
-            const imageData = canvasContext.getImageData(fromX.value, fromY.value, width, height).data;
-            console.log(imageData);
+            const imageData = canvasContext.getImageData(fromX.value, fromY.value, width.value, height.value).data;
             histogramWorker.postMessage({
                 type: "configure",
-                height,
-                imageData: imageData.buffer
+                height: height.value,
+                imageData: imageData.buffer,
+                groupHeight: grouping.value
             }, [imageData.buffer]);
         }
-        console.log("change has come to ekko");
-    }, [fromX.value, toX.value, fromY.value, toY.value]);
+    }, [fromX.value, fromY.value, width.value, height.value, grouping.value]);
 
-    const {r, g, b} = useMemo(() => {
-        if (!histogramData.value) {
+    const {r = null, g = null, b = null, grey = null} = useMemo(() => {
+        console.log("beregner svg:");
+        console.log({grey: allGrey.value, maxRelativeCount: maxRelativeCount.value});
+
+        if (!rows.value) {
             return {r: null, g: null, b: null};
         }
+
+        const maxAcrossChannels = Math.max(maxRelativeCount.value.r, Math.max(maxRelativeCount.value.g, maxRelativeCount.value.b));
+
+        if (allGrey.value) {
+            return {
+                grey: rows.value.map(({r, pixelCount}, i) => html`
+                    <${ChannelLine} scaleY=${grouping.value / maxAcrossChannels} scaleX=${4} width=${pixelCount} channelData=${r} spacingY=${grouping.value} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"r_" + i} />
+                `)
+            };
+        }
         return {
-            r: histogramData.value.map(({r}, i) => html`
-                <${ChannelDots} scaleY=${4} scaleX=${4} width=${width} channelData=${r} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"r_" + i} />
+            r: rows.value.map(({r, pixelCount}, i) => html`
+                <${ChannelLine} scaleY=${grouping.value / maxAcrossChannels} scaleX=${4} width=${pixelCount} channelData=${r} spacingY=${grouping.value} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"r_" + i} />
             `),
-            g: histogramData.value.map(({g}, i) => html`
-                <${ChannelDots} scaleY=${4} scaleX=${4} width=${width} channelData=${g} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"g_" + i} />
+            g: rows.value.map(({g, pixelCount}, i) => html`
+                <${ChannelLine} scaleY=${grouping.value / maxAcrossChannels} scaleX=${4} width=${pixelCount} channelData=${g} spacingY=${grouping.value} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"g_" + i} />
             `),
-            b: histogramData.value.map(({b}, i) => html`
-                <${ChannelDots} scaleY=${4} scaleX=${4} width=${width} channelData=${b} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"b_" + i} />
+            b: rows.value.map(({b, pixelCount}, i) => html`
+                <${ChannelLine} scaleY=${grouping.value / maxAcrossChannels} scaleX=${4} width=${pixelCount} channelData=${b} spacingY=${grouping.value} lineNumber=${i} offsetX=${0.5} offsetY=${0.5} key=${"b_" + i} />
             `)
         };
 
-    }, [histogramData.value]);
+    }, [rows.value, allGrey.value, maxRelativeCount.value]);
 
 
     return html`
-        <svg class="histogram" preserveAspectRatio="xMinYMid slice" width="1024" height=${height + 1} viewBox="0 0 ${256 * 4 + 1} ${height + 1}">
-            <rect x="0" y="0" width=${1024} height=${height + 1} stroke="none" class="background" />
-            <g class="r" fill="none" stroke-width="1" class="channel r">
-                ${r}
-            </g>
-            <g class="g" fill="none" stroke-width="1" class="channel g">
-                ${g}
-            </g>
-            <g class="b" fill="none" stroke-width="1" class="channel b">
-                ${b}
-            </g>
+        <svg
+            class="histogram"
+            height=${height.value + 1}
+            preserveAspectRatio="xMinYMid slice"
+            viewBox="0 0 ${256 * 4 + 1} ${height.value + 1}"
+            width="1024"
+        >
+            <rect
+                class="background"
+                height=${height.value + 1}
+                stroke="none"
+                width=${1024}
+                x="0"
+                y="0"
+            />
+            ${visibility.r.value && html`<g class="channel red">${r}</g>`}
+            ${visibility.g.value && html`<g class="channel green">${g}</g>`}
+            ${visibility.b.value && html`<g class="channel blue">${b}</g>`}
+            ${allGrey.value && html`<g class="channel grey">${grey}</g>`}
         </svg>
     `;
 };

@@ -21,15 +21,27 @@ const ImageView = (props = {}) => {
 
     return html`
         <li id=${id}>
-            <a href="#${id}" onclick=${clickHandler}>
+            <a
+                href=${"#" + id}
+                onclick=${clickHandler}
+            >
                 <figure>
-                    <img src=${img.src} />
+                    <img
+                        alt=""
+                        height=${img.naturalHeight}
+                        src=${img.src}
+                        width=${img.naturalWidth}
+                    />
                     <figcaption>
                         <${MetadataView} ...${props} />
                     </figcaption>
                 </figure>
             </a>
-            <button title="fjern ${name}" value=${id}>fjern ${name}</button>
+            <button
+                title="fjern ${name}"
+                type="submit"
+                value=${id}
+            >fjern ${name}</button>
         </li>
     `;
 };

@@ -79,7 +79,10 @@ const FileReaderView = (props = {}) => {
 
     return html`
         <li>
-            <${MetadataView} ...${metadata} progress=${progress} />
+            <${MetadataView}
+                ...${metadata}
+                progress=${progress}
+            />
         </li>
     `;
 };

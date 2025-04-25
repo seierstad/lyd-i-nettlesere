@@ -1,8 +1,7 @@
 import {html} from "htm/preact";
-import {useEffect, useRef, useContext, useMemo} from "preact/hooks";
+import {useEffect, useRef, useContext} from "preact/hooks";
 
-import {AppStateContext} from "./state.js";
-import {Histogram} from "./histogram.js";
+import {AppStateContext} from "../state.js";
 
 
 const ActiveImage = (props = {}) => {
@@ -13,15 +12,13 @@ const ActiveImage = (props = {}) => {
                 [idx.value]: image = {}
             } = []
         },
-        canvasContext = {value: null},
-        histogramData = {}
+        canvasContext = {value: null}
     } = useContext(AppStateContext);
 
     const {
         handlers: {
             dataSelection = {},
-            setCanvasContext,
-            updateHistogramData
+            setCanvasContext
         } = {}
     } = props;
 
@@ -42,7 +39,8 @@ const ActiveImage = (props = {}) => {
         to: {
             x: toX = {value: width},
             y: toY = {value: height}
-        } = {}
+        } = {},
+        height: selectionHeight = {value: height}
     } = selection;
 
     if (!image) {
@@ -50,8 +48,6 @@ const ActiveImage = (props = {}) => {
     }
 
     const canvas = useRef(null);
-
-    const selectionHeight = toY.value - fromY.value;
 
     const posX = Math.min(Math.max(position, fromX.value - 0.5), toX.value - 1.5);
 
@@ -76,37 +72,95 @@ const ActiveImage = (props = {}) => {
 
 
     return html`
-        <section id="visuell-analyse">
-            <div id="active-image">
-                <input
-                    id="from-x" type="range" min="0" max=${width} value=${fromX.value} step="1"
-                    onInput=${dataSelection.from.x}
+        <div id="active-image">
+            <input
+                id="from-x"
+                max=${width}
+                min="0"
+                onInput=${dataSelection.from.x}
+                step="1"
+                type="range"
+                value=${fromX.value}
+            />
+            <input
+                id="from-y"
+                max=${height}
+                min="0"
+                onInput=${dataSelection.from.y}
+                step="1"
+                type="range"
+                value=${fromY.value}
+            />
+            <canvas id="lerret" ref=${canvas}></canvas>
+            <svg
+                height=${height}
+                id="maske-og-posisjonsindikator"
+                viewBox="0 0 ${width} ${height}"
+                width=${width}
+            >
+                <g
+                    fill="#dd0"
+                    id="maske"
+                >
+                    <rect
+                        height=${fromY.value}
+                        id="maske-topp"
+                        width="100%"
+                        x="0"
+                        y="0"
+                    />
+                    <rect
+                        height=${height - toY.value}
+                        id="maske-bunn"
+                        width="100%"
+                        x="0"
+                        y=${toY.value}
+                    />
+                    <rect
+                        height=${selectionHeight.value}
+                        id="maske-venstre"
+                        width=${fromX.value}
+                        x="0"
+                        y=${fromY.value}
+                    />
+                    <rect
+                        height=${selectionHeight.value}
+                        id="maske-hoyre"
+                        width=${width - toX.value}
+                        x=${toX.value}
+                        y=${fromY.value}
+                    />
+                </g>
+                <rect
+                    fill="none"
+                    height=${selectionHeight.value + 1}
+                    id="posisjonsindikator"
+                    stroke="blue"
+                    stroke-width="1"
+                    width="2"
+                    x=${posX}
+                    y=${fromY.value - 0.5}
                 />
-                <input
-                    id="from-y" type="range" min="0" max=${height} value=${fromY.value} step="1"
-                    onInput=${dataSelection.from.y}
-                />
-                <canvas id="lerret" ref=${canvas}></canvas>
-                <svg id="maske-og-posisjonsindikator" width=${width} height=${height} viewBox="0 0 ${width} ${height}">
-                    <g id="maske" fill="#dd0">
-                        <rect id="maske-topp" x="0" width="100%" y="0" height=${fromY.value} />
-                        <rect id="maske-bunn" x="0" width="100%" y=${toY.value} height=${height - toY.value} />
-                        <rect id="maske-venstre" x="0" width=${fromX.value} y=${fromY.value} height=${selectionHeight} />
-                        <rect id="maske-hoyre" x=${toX.value} width=${width - toX.value} y=${fromY.value} height=${selectionHeight} />
-                    </g>
-                    <rect id="posisjonsindikator" x=${posX} width="2" y=${fromY.value - 0.5} height=${selectionHeight + 1} stroke-width="1" stroke="blue" fill="none"/>
-                </svg>
-                <input
-                    id="to-x" type="range" min=${0} max=${width} value=${toX.value} step="1"
-                    onInput=${dataSelection.to.x}
-                />
-                <input
-                    id="to-y" type="range" min=${0} max=${height} value=${toY.value} step="1"
-                    onInput=${dataSelection.to.y}
-                />
-            </div>
-            <${Histogram} selection=${selection} data=${histogramData} updateFn=${updateHistogramData} />
-        </section>
+            </svg>
+            <input
+                id="to-x"
+                max=${width}
+                min=${0}
+                onInput=${dataSelection.to.x}
+                step="1"
+                type="range"
+                value=${toX.value}
+            />
+            <input
+                id="to-y"
+                max=${height}
+                min=${0}
+                onInput=${dataSelection.to.y}
+                step="1"
+                type="range"
+                value=${toY.value}
+            />
+        </div>
     `;
 };
 

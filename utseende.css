@@ -176,6 +176,10 @@ code {
     }
 }
 
+.visuell-analyse {
+    display: flexbox;
+}
+
 #active-image {
     --padding: 1.5rem;
 
@@ -221,20 +225,30 @@ code {
 }
 
 .histogram {
-    filter: invert();
-    padding-left: 2rem;
+    margin-left: 2rem;
+    overflow: visible;
 
     .background {
         fill: black;
     }
 
     .channel {
-        mix-blend-mode: lighten;
+        mix-blend-mode: plus-lighter;
 
-        &.r { fill: #0ff; stroke: #0ff; }
-        &.g { fill: #f0f; stroke: #f0f; }
-        &.b { fill: #ff0; stroke: #ff0; }
+        &.red { fill: #f00; stroke: #f00; }
+        &.green { fill: #0f0; stroke: #0f0; }
+        &.blue { fill: #00f; stroke: #00f; }
+        &.grey { fill: #888; stroke: #888; }
     }
 }
+.pixel-sum {
+    background-color: black;
 
+    .channel {
+        mix-blend-mode: plus-lighter;
+        &.red { fill: #f00; }
+        &.green { fill: #0f0; }
+        &.blue { fill: #00f; }
+    }
+}
 

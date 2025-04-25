@@ -52,10 +52,24 @@ const MetadataView = (props = {}) => {
 
     return html`
         <dl class="metadata">
-            ${name && html`<dt>filnavn</dt><dd>${name}</dd>`}
-            ${lastModified && html`<dt>endret</dt><dd><time title="2025-03-19T14:25:28.494Z">2025-03-19</time></dd>`}
-            ${typeof size === "number" && html`<dt>størrelse</dt><dd><span title="${size} bytes">${readableFileSize(size)}</span></dd>`}
-            ${typeof progress === "number" && html`<dt>lastet</dt><dd>${progress} %</dd>`}
+            ${name && html`
+                <dt>filnavn</dt>
+                <dd>${name}</dd>
+            `}
+            ${lastModified && html`
+                <dt>endret</dt>
+                <dd><time title="2025-03-19T14:25:28.494Z">2025-03-19</time></dd>
+            `}
+            ${typeof size === "number" && html`
+                <dt>størrelse</dt>
+                <dd>
+                    <span title="${size} bytes">${readableFileSize(size)}</span>
+                </dd>
+            `}
+            ${typeof progress === "number" && html`
+                <dt>lastet</dt>
+                <dd>${progress} %</dd>
+            `}
         </dl>
     `;
 };
